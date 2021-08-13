@@ -49,8 +49,7 @@ export class PolusGameOptions {
     }
 
     addOptionEntry(entry: PolusGameOptionsEntry) {
-        console.log(entry);
-        this.fastStrippedToOption.set(stripTMP(entry.key), entry);
+        this.fastStrippedToOption.set(stripTMP(entry.key).trim(), entry);
         this.options.push(entry);
     }
 
