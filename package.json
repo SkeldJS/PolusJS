@@ -1,0 +1,16 @@
+{
+  "devDependencies": {
+    "@types/node": "^16.6.0",
+    "ts-node": "^10.2.0",
+    "typescript": "^4.3.5"
+  },
+  "dependencies": {
+    "@skeldjs/client": "^2.12.3",
+    "@skeldjs/constant": "^2.12.3",
+    "@skeldjs/core": "^2.12.3",
+    "@skeldjs/protocol": "^2.12.3",
+    "@skeldjs/text": "^2.12.3",
+    "@skeldjs/util": "^2.12.3"
+  },
+  "packageManager": "yarn@3.0.0-rc.13"
+}
