@@ -10,8 +10,8 @@ export class PolusGraphic<RoomType extends skeldjs.Hostable> extends skeldjs.Net
 
     constructor(
         room: RoomType,
-        netid: number,
         spawnType: skeldjs.SpawnType,
+        netid: number,
         ownerid: number,
         flags: number,
         data?: HazelReader | PolusGraphicData
