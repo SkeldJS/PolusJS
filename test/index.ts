@@ -1,3 +1,4 @@
+import { Color } from "@skeldjs/constant";
 import { Int2Code, sleep } from "@skeldjs/util";
 
 import { PolusGGClient } from "../src";
@@ -17,5 +18,15 @@ const polusGGClient = new PolusGGClient("2021.6.30s");
 
     await sleep(1000);
 
-    console.log(polusGGClient.gameOptions);
+    polusGGClient.skeldjsClient.me.control.checkName("hello");
+    polusGGClient.skeldjsClient.me.control.checkColor(Color.Blue);
+
+    await sleep(500);
+
+    polusGGClient.skeldjsClient.on("player.join", async () => {
+        console.log("player joined, waiting 5s");
+        await sleep(5000);
+
+        polusGGClient.gameOptions.setOption("Impostor Count", 80, true);
+    });
 })();
