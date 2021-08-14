@@ -7,9 +7,6 @@ export interface PolusNetworkTransformData {
 }
 
 export class PolusNetworkTransform<RoomType extends skeldjs.Hostable> extends skeldjs.Networkable {
-    static classname = "PolusNetworkTransform" as const;
-    classname = "PolusNetworkTransform" as const;
-
     position: Vector2;
     layer: number;
 

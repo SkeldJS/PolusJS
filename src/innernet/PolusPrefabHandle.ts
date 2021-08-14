@@ -4,9 +4,6 @@ import { HazelReader } from "@skeldjs/util";
 export interface PolusPrefabHandleData {}
 
 export class PolusPrefabHandle<RoomType extends skeldjs.Hostable> extends skeldjs.Networkable {
-    static classname = "PolusPrefabHandle" as const;
-    classname = "PolusPrefabHandle" as const;
-
     constructor(
         room: RoomType,
         spawnType: skeldjs.SpawnType,

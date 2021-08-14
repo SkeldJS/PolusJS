@@ -6,9 +6,6 @@ export interface PolusGraphicData {
 }
 
 export class PolusGraphic<RoomType extends skeldjs.Hostable> extends skeldjs.Networkable {
-    static classname = "PolusGraphic" as const;
-    classname = "PolusGraphic" as const;
-
     resourceId: number;
 
     constructor(

@@ -12,9 +12,6 @@ export interface PolusDeadBodyData {
 }
 
 export class PolusDeadBody<RoomType extends skeldjs.Hostable> extends skeldjs.Networkable {
-    static classname = "PolusDeadBody" as const;
-    classname = "PolusDeadBody" as const;
-
     normalizedTime: number;
     flipX: boolean;
     parentId: number;

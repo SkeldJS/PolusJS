@@ -12,9 +12,6 @@ export interface PolusSoundSourceData {
 }
 
 export class PolusSoundSource<RoomType extends skeldjs.Hostable> extends skeldjs.Networkable {
-    static classname = "PolusSoundSource" as const;
-    classname = "PolusSoundSource" as const;
-
     resourceId: number;
     pitch: number;
     volume: number;

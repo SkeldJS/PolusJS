@@ -14,9 +14,6 @@ export interface PolusClickBehaviourData {
 }
 
 export class PolusClickBehaviour<RoomType extends skeldjs.Hostable> extends skeldjs.Networkable {
-    static classname = "PolusClickBehaviour" as const;
-    classname = "PolusClickBehaviour" as const;
-
     maxTimer: number;
     currentTimer: number;
     isCountingDown: boolean;
