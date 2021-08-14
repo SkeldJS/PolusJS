@@ -38,8 +38,10 @@ export class PolusGGClient extends EventEmitter<PolusGGClientEvents> {
     setAccessToken: (token: string) => void;
 
     constructor(clientVersion: string|number|VersionInfo, options: Partial<ClientConfig> = {}) {
+        super();
+
         this.skeldjsClient = new skeldjs.SkeldjsClient(clientVersion, { ...options, attemptAuth: false });
-        this.gameOptions = new PolusGameOptions;
+        this.gameOptions = new PolusGameOptions(this);
 
         this.rest = new PGGRestClient(this);
         this.signer = new PacketSigner(this);
@@ -52,6 +54,9 @@ export class PolusGGClient extends EventEmitter<PolusGGClientEvents> {
             const signed = this.signer.signBytes(buffer);
             originalSend(signed);
         }
+
+        this.skeldjsClient.registerPrefab(130, [ PolusCameraController, PolusGraphic, PolusClickBehaviour ]);
+        this.skeldjsClient.registerPrefab(136, [ PolusCameraController ]);
 
         this.skeldjsClient.decoder.register(
             FetchResourceMessage,
@@ -132,6 +137,7 @@ export class PolusGGClient extends EventEmitter<PolusGGClientEvents> {
         }
 
         setInterval(() => {
+            // fix: client sends pings after server disconnects me
             if (this.skeldjsClient.connected) {
                 this.skeldjsClient.send(
                     new protocol.PingPacket(
