@@ -11,7 +11,7 @@ import { ClientConfig } from "@skeldjs/client/dist/lib/interface/ClientConfig";
 import { DeleteGameOptionMessage, FetchResourceMessage, FetchResourceResponseMessage, FetchResourceResponseType, PolusHostGameMessage, SetGameOptionMessage } from "./packets";
 import { PolusGameOptions } from "./struct";
 import { RoomID } from "@skeldjs/client";
-import { PolusCameraController, PolusClickBehaviour, PolusGraphic } from "./innernet";
+import { PolusCameraController, PolusClickBehaviour, PolusDeadBody, PolusGraphic, PolusNetworkTransform, PolusPoi, PolusPrefabHandle, PolusSoundSource } from "./innernet";
 import { EventEmitter, ExtractEventTypes } from "@skeldjs/events";
 import { FetchResourceEvent } from "./events";
 
@@ -55,8 +55,13 @@ export class PolusGGClient extends EventEmitter<PolusGGClientEvents> {
             originalSend(signed);
         }
 
-        this.skeldjsClient.registerPrefab(130, [ PolusCameraController, PolusGraphic, PolusClickBehaviour ]);
+        this.skeldjsClient.registerPrefab(128, [ PolusGraphic, PolusNetworkTransform ]);
+        this.skeldjsClient.registerPrefab(129, [ PolusCameraController, PolusGraphic, PolusClickBehaviour ]);
+        this.skeldjsClient.registerPrefab(131, [ PolusDeadBody, PolusNetworkTransform ]);
+        this.skeldjsClient.registerPrefab(133, [ PolusSoundSource, PolusNetworkTransform ]);
+        this.skeldjsClient.registerPrefab(135, [ PolusPoi, PolusGraphic, PolusNetworkTransform ]);
         this.skeldjsClient.registerPrefab(136, [ PolusCameraController ]);
+        this.skeldjsClient.registerPrefab(137, [ PolusPrefabHandle, PolusNetworkTransform ]);
 
         this.skeldjsClient.decoder.register(
             FetchResourceMessage,
