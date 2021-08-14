@@ -1,3 +1,4 @@
+export * from "./Click";
 export * from "./DeleteGameOption";
 export * from "./FetchResource";
 export * from "./FetchResourceResponse";
