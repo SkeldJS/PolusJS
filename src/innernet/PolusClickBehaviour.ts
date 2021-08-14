@@ -1,5 +1,7 @@
 import * as skeldjs from "@skeldjs/client";
+import * as protocol from "@skeldjs/protocol";
 import { HazelReader, HazelWriter } from "@skeldjs/util";
+import { ClickMessage } from "../packets";
 
 type RGBA = [ number, number, number, number ];
 
@@ -37,6 +39,15 @@ export class PolusClickBehaviour<RoomType extends skeldjs.Hostable> extends skel
         this.color ||= [ 0, 0, 0, 0 ];
     }
 
+    FixedUpdate(delta: number) {
+        if (this.isCountingDown) {
+            this.currentTimer -= delta;
+
+            if (this.currentTimer < 0)
+                this.currentTimer = 0;
+        }
+    }
+
     Deserialize(reader: HazelReader, isSpawn: boolean) {
         this.maxTimer = reader.float();
         this.currentTimer = reader.float();
@@ -55,5 +66,14 @@ export class PolusClickBehaviour<RoomType extends skeldjs.Hostable> extends skel
         writer.uint8(this.color[2]);
         writer.uint8(this.color[3]);
         return true;
+    }
+
+    click() {
+        this.room.stream.push(
+            new protocol.RpcMessage(
+                this.netid,
+                new ClickMessage
+            )
+        );
     }
 }
