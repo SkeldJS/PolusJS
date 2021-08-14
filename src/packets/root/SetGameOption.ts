@@ -1,8 +1,15 @@
 import * as protocol from "@skeldjs/protocol";
 import { HazelReader, HazelWriter } from "@skeldjs/util";
 
-import { OptionType, PolusRootMessageTag } from "../enums";
-import { PolusGameOptionsBooleanValue, PolusGameOptionsEntry, PolusGameOptionsEnumValue, PolusGameOptionsNumberValue, PolusGameOptionsValue } from "../struct";
+import { OptionType, PolusRootMessageTag } from "../../enums";
+
+import {
+    PolusGameOptionsBooleanValue,
+    PolusGameOptionsEntry,
+    PolusGameOptionsEnumValue,
+    PolusGameOptionsNumberValue,
+    PolusGameOptionsValue
+} from "../../struct";
 
 export class SetGameOptionMessage extends protocol.BaseRootMessage {
     static messageTag = PolusRootMessageTag.SetGameOption as const;

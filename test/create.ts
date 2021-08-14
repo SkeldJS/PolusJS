@@ -3,7 +3,6 @@ import { Int2Code, sleep } from "@skeldjs/util";
 
 import { PolusGGClient } from "../src";
 
-
 const polusGGClient = new PolusGGClient("2021.6.30s");
 
 (async () => {
@@ -14,13 +13,17 @@ const polusGGClient = new PolusGGClient("2021.6.30s");
     console.log("creating game..");
     await polusGGClient.hostGame(true);
 
+    console.log(await polusGGClient.cosmeticsRestClient.getCosmeticList());
+
     console.log("code: " + Int2Code(polusGGClient.skeldjsClient.code));
 
-    await sleep(1000);
-
+    await sleep(2000);
+    
     polusGGClient.skeldjsClient.me.control.checkName("hello");
     polusGGClient.skeldjsClient.me.control.checkColor(Color.Blue);
 
-    polusGGClient.gameOptions.setOption("Player Speed", 1.75);
-    polusGGClient.gameOptions.setOption("Player Speed", 1.6);
+    await polusGGClient.skeldjsClient.wait("player.join");
+    await sleep(4000);
+
+    polusGGClient.setHat(10000000);
 })();

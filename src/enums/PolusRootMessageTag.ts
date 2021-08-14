@@ -1,10 +1,12 @@
 export enum PolusRootMessageTag {
     FetchResource = 0x80,
     Resize,
-    Intro,
-    EndGame,
+    DisplayStartGameScreen,
+    OverwriteGameOver,
     SetString,
     DeclareHat,
+    DeclarePet,
+    DeclareSkin,
     SetGameOption = 0x89,
     DeleteGameOption,
     SetHudVisibility = 0x8b,
@@ -16,6 +18,6 @@ export enum PolusRootMessageTag {
     ChangeScene,
     MarkAssBrown,
     ModstampSetString,
-    DisplaySystemAnnouncement = 0xfa,
+    DisplaySystemAlert = 0xfa,
     UpdateDiscordRichPresence = 0xfb
 }

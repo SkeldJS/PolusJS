@@ -1,6 +1,6 @@
 import * as protocol from "@skeldjs/protocol";
 import { HazelReader, HazelWriter } from "@skeldjs/util";
-import { PolusRootMessageTag } from "../enums";
+import { PolusRootMessageTag } from "../../enums";
 
 export enum FetchResourceResponseType {
     DownloadStarted,
