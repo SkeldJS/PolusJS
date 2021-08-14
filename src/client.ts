@@ -110,7 +110,7 @@ export class PolusGGClient extends EventEmitter<PolusGGClientEvents> {
 
         this.skeldjsClient.decoder.on(SetGameOptionMessage, message => {
             if (message.seqId === this.gameOptions.seqId) {
-                this.gameOptions.flushQueue();
+                this.gameOptions.flushUpdateQueue();
                 this.gameOptions.addOptionEntry(message.optionEntry);
                 this.gameOptions.nextSeqId();
             } else {
@@ -120,7 +120,7 @@ export class PolusGGClient extends EventEmitter<PolusGGClientEvents> {
 
         this.skeldjsClient.decoder.on(DeleteGameOptionMessage, async message => {
             if (message.seqId === this.gameOptions.seqId) {
-                this.gameOptions.flushQueue();
+                this.gameOptions.flushUpdateQueue();
                 this.gameOptions.removeOptionEntry(message.optionName);
                 this.gameOptions.nextSeqId();
             } else {

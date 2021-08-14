@@ -24,9 +24,11 @@ const polusGGClient = new PolusGGClient("2021.6.30s");
     await sleep(500);
 
     polusGGClient.skeldjsClient.on("player.join", async () => {
-        console.log("player joined, waiting 5s");
+        polusGGClient.gameOptions.setOption("Impostor Count", 1);
         await sleep(5000);
-
-        polusGGClient.gameOptions.setOption("Impostor Count", 80, true);
+        const impostorCount = polusGGClient.gameOptions.getOption("Impostor Count");
+        if (impostorCount.type === "NUMBER") {
+            polusGGClient.gameOptions.setOption("Impostor Count", impostorCount.value + 1);
+        }
     });
 })();

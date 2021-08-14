@@ -66,7 +66,7 @@ export class PolusGameOptions {
         return this.seqId;
     }
 
-    flushQueue() {
+    flushUpdateQueue() {
         for (const updateMessage of this.updateQueue) {
             if (updateMessage.tag === PolusRootMessageTag.SetGameOption) {
                 this.addOptionEntry(updateMessage.optionEntry);
@@ -90,7 +90,7 @@ export class PolusGameOptions {
     }
 
     removeOptionEntry(optionName: string) {
-        const optionIdx = this.options.findIndex(option => stripTMP(option.key) === optionName);
+        const optionIdx = this.options.findIndex(option => option.key === optionName);
 
         if (optionIdx !== -1) {
             this.options.splice(optionIdx, 1);
@@ -148,5 +148,9 @@ export class PolusGameOptions {
         );
 
         this.nextSeqId();
+    }
+
+    getOption(optionName: string) {
+        return this.fastStrippedToOption.get(optionName)?.value;
     }
 }
