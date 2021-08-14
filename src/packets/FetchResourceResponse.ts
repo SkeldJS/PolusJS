@@ -9,8 +9,8 @@ export enum FetchResourceResponseType {
 }
 
 export class FetchResourceResponseMessage extends protocol.BaseRootMessage {
-    static tag = PolusRootMessageTag.FetchResource as const;
-    tag = PolusRootMessageTag.FetchResource as const;
+    static messageTag = PolusRootMessageTag.FetchResource as const;
+    messageTag = PolusRootMessageTag.FetchResource as const;
 
     constructor(
         resourceId: number,

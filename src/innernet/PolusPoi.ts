@@ -9,11 +9,12 @@ export class PolusPoi<RoomType extends skeldjs.Hostable> extends skeldjs.Network
 
     constructor(
         room: RoomType,
+        spawnType: skeldjs.SpawnType,
         netid: number,
         ownerid: number,
         flags: number,
         data?: HazelReader | PolusPoiData
     ) {
-        super(room, netid, ownerid, flags, data);
+        super(room, spawnType, netid, ownerid, flags, data);
     }
 }

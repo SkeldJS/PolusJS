@@ -14,11 +14,12 @@ export class PolusGraphic<RoomType extends skeldjs.Hostable> extends skeldjs.Net
     constructor(
         room: RoomType,
         netid: number,
+        spawnType: skeldjs.SpawnType,
         ownerid: number,
         flags: number,
         data?: HazelReader | PolusGraphicData
     ) {
-        super(room, netid, ownerid, flags, data);
+        super(room, spawnType, netid, ownerid, flags, data);
 
         this.resourceId ||= 0;
     }

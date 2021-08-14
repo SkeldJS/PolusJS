@@ -5,8 +5,8 @@ import { OptionType, PolusRootMessageTag } from "../enums";
 import { PolusGameOptionsBooleanValue, PolusGameOptionsEntry, PolusGameOptionsEnumValue, PolusGameOptionsNumberValue, PolusGameOptionsValue } from "../struct";
 
 export class SetGameOptionMessage extends protocol.BaseRootMessage {
-    static tag = PolusRootMessageTag.SetGameOption as const;
-    tag = PolusRootMessageTag.SetGameOption as const;
+    static messageTag = PolusRootMessageTag.SetGameOption as const;
+    messageTag = PolusRootMessageTag.SetGameOption as const;
 
     constructor(
         public readonly seqId: number,

@@ -5,13 +5,13 @@
     "typescript": "^4.3.5"
   },
   "dependencies": {
-    "@skeldjs/client": "^2.12.6",
-    "@skeldjs/constant": "^2.12.6",
-    "@skeldjs/core": "^2.12.6",
-    "@skeldjs/events": "^2.12.6",
-    "@skeldjs/protocol": "^2.12.6",
-    "@skeldjs/text": "^2.12.6",
-    "@skeldjs/util": "^2.12.6"
+    "@skeldjs/client": "^2.13.0",
+    "@skeldjs/constant": "^2.13.0",
+    "@skeldjs/core": "^2.13.0",
+    "@skeldjs/events": "^2.13.0",
+    "@skeldjs/protocol": "^2.13.0",
+    "@skeldjs/text": "^2.13.0",
+    "@skeldjs/util": "^2.13.0"
   },
   "packageManager": "yarn@3.0.0-rc.13"
 }

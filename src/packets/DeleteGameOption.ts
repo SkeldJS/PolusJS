@@ -3,8 +3,8 @@ import { HazelReader, HazelWriter } from "@skeldjs/util";
 import { PolusRootMessageTag } from "../enums";
 
 export class DeleteGameOptionMessage extends protocol.BaseRootMessage {
-    static tag = PolusRootMessageTag.DeleteGameOption as const;
-    tag = PolusRootMessageTag.DeleteGameOption as const;
+    static messageTag = PolusRootMessageTag.DeleteGameOption as const;
+    messageTag = PolusRootMessageTag.DeleteGameOption as const;
 
     constructor(
         public readonly seqId: number,

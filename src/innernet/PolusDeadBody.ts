@@ -23,12 +23,13 @@ export class PolusDeadBody<RoomType extends skeldjs.Hostable> extends skeldjs.Ne
 
     constructor(
         room: RoomType,
+        spawnType: skeldjs.SpawnType,
         netid: number,
         ownerid: number,
         flags: number,
         data?: HazelReader | PolusDeadBodyData
     ) {
-        super(room, netid, ownerid, flags, data);
+        super(room, spawnType, netid, ownerid, flags, data);
 
         this.normalizedTime ||= 0;
         this.flipX ||= false;

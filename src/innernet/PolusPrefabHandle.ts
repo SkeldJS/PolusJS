@@ -9,11 +9,12 @@ export class PolusPrefabHandle<RoomType extends skeldjs.Hostable> extends skeldj
 
     constructor(
         room: RoomType,
+        spawnType: skeldjs.SpawnType,
         netid: number,
         ownerid: number,
         flags: number,
         data?: HazelReader | PolusPrefabHandleData
     ) {
-        super(room, netid, ownerid, flags, data);
+        super(room, spawnType, netid, ownerid, flags, data);
     }
 }

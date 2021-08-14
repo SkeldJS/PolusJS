@@ -6,19 +6,17 @@ export interface PolusCameraControllerData {
 }
 
 export class PolusCameraController<RoomType extends skeldjs.Hostable> extends skeldjs.Networkable {
-    static classname = "PolusCameraController" as const;
-    classname = "PolusCameraController" as const;
-
     camOffset: Vector2;
 
     constructor(
         room: RoomType,
+        spawnType: skeldjs.SpawnType,
         netid: number,
         ownerid: number,
         flags: number,
         data?: HazelReader | PolusCameraControllerData
     ) {
-        super(room, netid, ownerid, flags, data);
+        super(room, spawnType, netid, ownerid, flags, data);
 
         this.camOffset ||= Vector2.null;
     }

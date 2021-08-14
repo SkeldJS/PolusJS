@@ -68,9 +68,9 @@ export class PolusGameOptions {
 
     flushUpdateQueue() {
         for (const updateMessage of this.updateQueue) {
-            if (updateMessage.tag === PolusRootMessageTag.SetGameOption) {
+            if (updateMessage.messageTag === PolusRootMessageTag.SetGameOption) {
                 this.addOptionEntry(updateMessage.optionEntry);
-            } else if (updateMessage.tag === PolusRootMessageTag.DeleteGameOption) {
+            } else if (updateMessage.messageTag === PolusRootMessageTag.DeleteGameOption) {
                 this.removeOptionEntry(updateMessage.optionName);
             }
         }

@@ -15,12 +15,13 @@ export class PolusNetworkTransform<RoomType extends skeldjs.Hostable> extends sk
 
     constructor(
         room: RoomType,
+        spawnType: skeldjs.SpawnType,
         netid: number,
         ownerid: number,
         flags: number,
         data?: HazelReader | PolusNetworkTransformData
     ) {
-        super(room, netid, ownerid, flags, data);
+        super(room, spawnType, netid, ownerid, flags, data);
 
         this.position ||= Vector2.null;
         this.layer ||= 0;

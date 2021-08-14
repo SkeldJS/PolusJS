@@ -24,12 +24,13 @@ export class PolusSoundSource<RoomType extends skeldjs.Hostable> extends skeldjs
 
     constructor(
         room: RoomType,
+        spawnType: skeldjs.SpawnType,
         netid: number,
         ownerid: number,
         flags: number,
         data?: HazelReader | PolusSoundSourceData
     ) {
-        super(room, netid, ownerid, flags, data);
+        super(room, spawnType, netid, ownerid, flags, data);
 
         this.resourceId ||= 0;
         this.pitch ||= 0;

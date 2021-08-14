@@ -5,8 +5,8 @@ import { RootMessageTag } from "@skeldjs/constant";
 import { Code2Int, HazelReader, HazelWriter } from "@skeldjs/util";
 
 export class PolusHostGameMessage extends protocol.BaseRootMessage {
-    static tag = RootMessageTag.HostGame as const;
-    tag = RootMessageTag.HostGame as const;
+    static messageTag = RootMessageTag.HostGame as const;
+    messageTag = RootMessageTag.HostGame as const;
 
     readonly code!: number;
     readonly options!: protocol.GameSettings;

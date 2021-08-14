@@ -25,12 +25,13 @@ export class PolusClickBehaviour<RoomType extends skeldjs.Hostable> extends skel
 
     constructor(
         room: RoomType,
+        spawnType: skeldjs.SpawnType,
         netid: number,
         ownerid: number,
         flags: number,
         data?: HazelReader | PolusClickBehaviourData
     ) {
-        super(room, netid, ownerid, flags, data);
+        super(room, spawnType, netid, ownerid, flags, data);
 
         this.maxTimer ||= 0;
         this.currentTimer ||= 0;
