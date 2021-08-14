@@ -43,12 +43,46 @@ export class PolusGameOptions {
     fastStrippedToOption: Map<string, PolusGameOptionsEntry>;
     options: PolusGameOptionsEntry[];
 
-    constructor() {
+    updateQueue: (SetGameOptionMessage|DeleteGameOptionMessage)[];
+    seqId: number;
+
+    constructor(
+        public readonly client: PolusGGClient
+    ) {
         this.fastStrippedToOption = new Map;
         this.options = [];
+
+        this.updateQueue = [];
+        this.seqId = 0;
+    }
+
+    nextSeqId() {
+        this.seqId++;
+        if (this.seqId >= 65535) {
+            this.seqId = 0;
+        }
+        return this.seqId;
+    }
+
+    flushQueue() {
+        for (const updateMessage of this.updateQueue) {
+            if (updateMessage.tag === PolusRootMessageTag.SetGameOption) {
+                this.addOptionEntry(updateMessage.optionEntry);
+            } else if (updateMessage.tag === PolusRootMessageTag.DeleteGameOption) {
+                this.removeOptionEntry(updateMessage.optionName);
+            }
+        }
+        this.updateQueue = [];
     }
 
     addOptionEntry(entry: PolusGameOptionsEntry) {
+        const cachedEntry = this.options.find(opt => opt.key === entry.key);
+
+        if (cachedEntry) {
+            cachedEntry.value = entry.value;
+            return;
+        }
+
         this.fastStrippedToOption.set(stripTMP(entry.key).trim(), entry);
         this.options.push(entry);
     }

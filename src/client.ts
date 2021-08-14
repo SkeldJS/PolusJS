@@ -67,12 +67,24 @@ export class PolusGGClient {
             );
         });
 
-        this.skeldjsClient.decoder.on(SetGameOptionMessage, async message => {
-            this.gameOptions.addOptionEntry(message.optionEntry);
+        this.skeldjsClient.decoder.on(SetGameOptionMessage, message => {
+            if (message.seqId === this.gameOptions.seqId) {
+                this.gameOptions.flushQueue();
+                this.gameOptions.addOptionEntry(message.optionEntry);
+                this.gameOptions.nextSeqId();
+            } else {
+                this.gameOptions.updateQueue.push(message);
+            }
         });
 
         this.skeldjsClient.decoder.on(DeleteGameOptionMessage, async message => {
-            this.gameOptions.removeOptionEntry(message.optionName);
+            if (message.seqId === this.gameOptions.seqId) {
+                this.gameOptions.flushQueue();
+                this.gameOptions.removeOptionEntry(message.optionName);
+                this.gameOptions.nextSeqId();
+            } else {
+                this.gameOptions.updateQueue.push(message);
+            }
         });
 
         let _secureToken = "";
