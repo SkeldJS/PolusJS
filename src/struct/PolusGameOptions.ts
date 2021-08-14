@@ -1,5 +1,7 @@
-import { HazelReader } from "@skeldjs/util";
-import { OptionType } from "../enums";
+import { ReliablePacket, RpcMessage } from "@skeldjs/protocol";
+import { PolusGGClient } from "../client";
+import { PolusRootMessageTag } from "../enums";
+import { DeleteGameOptionMessage, SetGameOptionMessage } from "../packets";
 import { stripTMP } from "../util/stripTMP";
 
 export interface PolusGameOptionsEnumValue {
@@ -95,7 +97,7 @@ export class PolusGameOptions {
         }
     }
 
-    setOption(optionName: string, value: any, bypassRestriction = false) {
+    async setOption(optionName: string, value: any, bypassRestriction = false) {
         const optionEntry = this.fastStrippedToOption.get(optionName);
 
         if (!optionEntry) {
@@ -132,5 +134,19 @@ export class PolusGameOptions {
                 optionEntry.value.value = false;
                 break;
         }
+
+        await this.client.skeldjsClient.send(
+            new ReliablePacket(
+                this.client.skeldjsClient.getNextNonce(),
+                [
+                    new SetGameOptionMessage(
+                        this.seqId,
+                        optionEntry
+                    )
+                ]
+            )
+        );
+
+        this.nextSeqId();
     }
 }
