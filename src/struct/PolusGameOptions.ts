@@ -94,6 +94,7 @@ export class PolusGameOptions {
 
         if (optionIdx !== -1) {
             this.options.splice(optionIdx, 1);
+            this.fastStrippedToOption.delete(stripTMP(optionName).trim());
         }
     }
 
