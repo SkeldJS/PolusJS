@@ -8,7 +8,7 @@ import { PacketSigner } from "./PacketSigner";
 import { AccountInfoModel, PGGRestClient } from "./rest";
 import { AccountInfo } from "./struct/AccountInfo";
 import { ClientConfig } from "@skeldjs/client/dist/lib/interface/ClientConfig";
-import { DeleteGameOptionMessage, FetchResourceMessage, FetchResourceResponseMessage, FetchResourceResponseType, PolusHostGameMessage, SetGameOptionMessage } from "./packets";
+import { ClickMessage, DeleteGameOptionMessage, FetchResourceMessage, FetchResourceResponseMessage, FetchResourceResponseType, PolusHostGameMessage, SetGameOptionMessage } from "./packets";
 import { PolusGameOptions } from "./struct";
 import { RoomID } from "@skeldjs/client";
 import { PolusCameraController, PolusClickBehaviour, PolusDeadBody, PolusGraphic, PolusNetworkTransform, PolusPoi, PolusPrefabHandle, PolusSoundSource } from "./innernet";
@@ -64,10 +64,12 @@ export class PolusGGClient extends EventEmitter<PolusGGClientEvents> {
         this.skeldjsClient.registerPrefab(137, [ PolusPrefabHandle, PolusNetworkTransform ]);
 
         this.skeldjsClient.decoder.register(
-            FetchResourceMessage,
-            SetGameOptionMessage,
+            ClickMessage,
             DeleteGameOptionMessage,
-            PolusHostGameMessage
+            FetchResourceMessage,
+            FetchResourceResponseMessage,
+            PolusHostGameMessage,
+            SetGameOptionMessage
         );
 
         this.skeldjsClient.decoder.on(FetchResourceMessage, async message => {
@@ -213,7 +215,7 @@ export class PolusGGClient extends EventEmitter<PolusGGClientEvents> {
             this.skeldjsClient.decoder.wait(protocol.HostGameMessage),
         ]);
 
-        switch (message.tag) {
+        switch (message.messageTag) {
             case skeldjs.RootMessageTag.JoinGame:
                 throw new skeldjs.JoinError(message.error, skeldjs.DisconnectMessages[message.error || skeldjs.DisconnectReason.None] || message.message);
             case skeldjs.RootMessageTag.Redirect:
