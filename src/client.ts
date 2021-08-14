@@ -11,19 +11,27 @@ import { ClientConfig } from "@skeldjs/client/dist/lib/interface/ClientConfig";
 import { DeleteGameOptionMessage, FetchResourceMessage, FetchResourceResponseMessage, FetchResourceResponseType, PolusHostGameMessage, SetGameOptionMessage } from "./packets";
 import { PolusGameOptions } from "./struct";
 import { RoomID } from "@skeldjs/client";
+import { PolusCameraController, PolusClickBehaviour, PolusGraphic } from "./innernet";
+import { EventEmitter, ExtractEventTypes } from "@skeldjs/events";
+import { FetchResourceEvent } from "./events";
 
 export interface PolusGGCredentials {
     email: string;
     password: string;
 }
 
-export class PolusGGClient {
+export type PolusGGClientEvents = ExtractEventTypes<[
+    FetchResourceEvent
+]>;
+
+export class PolusGGClient extends EventEmitter<PolusGGClientEvents> {
     skeldjsClient: skeldjs.SkeldjsClient;
     gameOptions: PolusGameOptions;
 
     rest: PGGRestClient;
     signer: PacketSigner;
 
+    assetCache: Map<number, Buffer>;
     accountInfo?: AccountInfo;
 
     getAccessToken: () => string|undefined;
@@ -36,6 +44,7 @@ export class PolusGGClient {
         this.rest = new PGGRestClient(this);
         this.signer = new PacketSigner(this);
 
+        this.assetCache = new Map;
         this.skeldjsClient.options.attemptAuth = false;
 
         const originalSend = skeldjs.SkeldjsClient.prototype["_send"].bind(this.skeldjsClient);
@@ -52,19 +61,46 @@ export class PolusGGClient {
         );
 
         this.skeldjsClient.decoder.on(FetchResourceMessage, async message => {
-            // todo: emit fetch resource event, allow client to decide success/failure
-            await this.skeldjsClient.send(
-                new protocol.ReliablePacket(
-                    this.skeldjsClient.getNextNonce(),
-                    [
-                        new FetchResourceResponseMessage(
-                            message.resourceId,
-                            FetchResourceResponseType.DownloadEnded,
-                            false
-                        )
-                    ]
+            const ev = await this.emit(
+                new FetchResourceEvent(
+                    message.resourceId,
+                    message.resourceLocation,
+                    message.resourceHash,
+                    message.resourceType
                 )
             );
+
+            if (!ev.failCode && ev.downloadedBuffer) {
+                this.assetCache.set(message.resourceId, ev.downloadedBuffer);
+            }
+
+            if (ev.failCode) {
+                await this.skeldjsClient.send(
+                    new protocol.ReliablePacket(
+                        this.skeldjsClient.getNextNonce(),
+                        [
+                            new FetchResourceResponseMessage(
+                                message.resourceId,
+                                FetchResourceResponseType.DownloadFailed,
+                                ev.failCode
+                            )
+                        ]
+                    )
+                );
+            } else {
+                await this.skeldjsClient.send(
+                    new protocol.ReliablePacket(
+                        this.skeldjsClient.getNextNonce(),
+                        [
+                            new FetchResourceResponseMessage(
+                                message.resourceId,
+                                FetchResourceResponseType.DownloadEnded,
+                                ev.downloadCached
+                            )
+                        ]
+                    )
+                );
+            }
         });
 
         this.skeldjsClient.decoder.on(SetGameOptionMessage, message => {

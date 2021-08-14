@@ -16,7 +16,7 @@ export class PacketSigner {
 
         const hmacSigner = crypto.createHmac("SHA1", accessToken);
         const hash = hmacSigner.update(bytes).digest();
-        hash[1] -= 2;
+        hash[19] -= 2;
 
         const outputBytes = Buffer.alloc(
             + 1 /* auth byte */
