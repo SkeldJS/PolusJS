@@ -3,7 +3,7 @@ import http from "http";
 import { PolusGGClient } from "../../client";
 import { HttpMethod, PolusRestClient, RequestOptions } from "./RestClient";
 
-import { ApiEndpoints, DeclareEndpoint } from "../endpoints";
+import { ApiEndpoints, Endpoint } from "../endpoints";
 import { ApiError } from "../ApiError";
 import { NonJsonResponse } from "../NonJsonResponse";
 
@@ -18,7 +18,7 @@ export class PolusCosmeticsRestClient extends PolusRestClient {
 
     makeAuthorisedRequest<ReqType, ResType>(
         method: HttpMethod,
-        endpoint: DeclareEndpoint<ReqType, ResType>,
+        endpoint: Endpoint<ReqType, ResType>,
         options: Partial<RequestOptions<ReqType>> = {}
     ): Promise<ResType> {
         return new Promise((resolve, reject) => {
@@ -77,24 +77,52 @@ export class PolusCosmeticsRestClient extends PolusRestClient {
         });
     }
 
-    async getCosmeticList() {
+    async getAllCosmetics() {
         return await this.makeAuthorisedRequest(
             "GET",
-            ApiEndpoints.CosmeticList()
+            ApiEndpoints.GetAllCosmetics()
         );
     }
 
-    async getCosmeticItem(cosmeticId: string) {
+    async getAllPurchases() {
         return await this.makeAuthorisedRequest(
             "GET",
-            ApiEndpoints.CosmeticItem(cosmeticId)
+            ApiEndpoints.GetAllPurchases()
+        );
+    }
+
+    async getBundle(bundleId: string) {
+        return await this.makeAuthorisedRequest(
+            "GET",
+            ApiEndpoints.GetBundle(bundleId)
+        );
+    }
+
+    async getBundleList() {
+        return await this.makeAuthorisedRequest(
+            "GET",
+            ApiEndpoints.GetBundleList()
+        );
+    }
+
+    async getCosmetic(cosmeticId: string) {
+        return await this.makeAuthorisedRequest(
+            "GET",
+            ApiEndpoints.GetCosmetic(cosmeticId)
         );
     }
 
     async getCosmeticItemByAuId(amongUsId: number) {
         return await this.makeAuthorisedRequest(
             "GET",
-            ApiEndpoints.CosmeticItemByAuId(amongUsId)
-        )
+            ApiEndpoints.GetCosmeticByAuId(amongUsId)
+        );
+    }
+
+    async getPurchase(purchaseId: string) {
+        return await this.makeAuthorisedRequest(
+            "GET",
+            ApiEndpoints.GetPurchase(purchaseId)
+        );
     }
 }

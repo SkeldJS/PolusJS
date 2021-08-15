@@ -283,7 +283,7 @@ export class PolusGGClient extends EventEmitter<PolusGGClientEvents> {
         this.setAccessToken(client_token);
         this.accountInfo = new AccountInfo(accountInfo as AccountInfoModel);
 
-        const cosmeticItems = await this.cosmeticsRestClient.getCosmeticList();
+        const cosmeticItems = await this.cosmeticsRestClient.getAllCosmetics();
         for (const cosmeticItem of cosmeticItems) {
             this.registerCosmetic(cosmeticItem, false);
         }

@@ -2,7 +2,7 @@ import https from "https";
 
 import { PolusGGClient } from "../../client";
 import { ApiError } from "../ApiError";
-import { DeclareEndpoint } from "../endpoints";
+import { Endpoint } from "../endpoints";
 import { NonJsonResponse } from "../NonJsonResponse";
 
 export type RequestOptions<ReqType> = {
@@ -23,7 +23,7 @@ export class PolusRestClient {
 
     makeAuthorisedRequest<ReqType, ResType>(
         method: HttpMethod,
-        endpoint: DeclareEndpoint<ReqType, ResType>,
+        endpoint: Endpoint<ReqType, ResType>,
         options: Partial<RequestOptions<ReqType>> = {}
     ): Promise<ResType> {
         return new Promise((resolve, reject) => {

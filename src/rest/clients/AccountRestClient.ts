@@ -1,7 +1,7 @@
 import { PolusGGClient } from "../../client";
 import { HttpMethod, PolusRestClient, RequestOptions } from "./RestClient";
 
-import { ApiEndpoints, DeclareEndpoint } from "../endpoints";
+import { ApiEndpoints, Endpoint } from "../endpoints";
 
 export class PolusAccountRestClient extends PolusRestClient {
     baseUrl = "account.polus.gg";
@@ -14,7 +14,7 @@ export class PolusAccountRestClient extends PolusRestClient {
 
     makeAuthorisedRequest<ReqType, ResType>(
         method: HttpMethod,
-        endpoint: DeclareEndpoint<ReqType, ResType>,
+        endpoint: Endpoint<ReqType, ResType>,
         options: Partial<RequestOptions<ReqType>> = {}
     ): Promise<ResType> {
         if (options.headers) {
@@ -27,7 +27,7 @@ export class PolusAccountRestClient extends PolusRestClient {
             }
         }
 
-        return super.makeAuthorisedRequest(method, ("/api/v1" + endpoint) as DeclareEndpoint<ReqType, ResType>, options);
+        return super.makeAuthorisedRequest(method, ("/api/v1" + endpoint) as Endpoint<ReqType, ResType>, options);
     }
 
     async loginWithEmail(email: string, password: string) {
