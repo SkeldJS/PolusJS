@@ -7,7 +7,7 @@ import { VersionInfo } from "@skeldjs/util";
 import { PacketSigner } from "./PacketSigner";
 import { AccountInfo } from "./struct/AccountInfo";
 import { ClientConfig } from "@skeldjs/client/dist/lib/interface/ClientConfig";
-import { PolusGameOptions, PolusHat } from "./struct";
+import { PolusGameOptions, PolusCosmetic } from "./struct";
 import { RoomID } from "@skeldjs/client";
 
 import { EventEmitter, ExtractEventTypes } from "@skeldjs/events";
@@ -28,6 +28,8 @@ import {
     FetchResourceResponseMessage,
     FetchResourceResponseType,
     LoadHatMessage,
+    LoadPetMessage,
+    LoadSkinMessage,
     PolusHostGameMessage,
     SetGameOptionMessage
 } from "./packets";
@@ -42,7 +44,7 @@ import {
     PolusPrefabHandle,
     PolusSoundSource
 } from "./innernet";
-import { BuiltInHats } from "./data";
+import { BuiltInHats, BuiltInPets, BuiltInSkins } from "./data";
 
 export interface PolusGGCredentials {
     email: string;
@@ -62,7 +64,9 @@ export class PolusGGClient extends EventEmitter<PolusGGClientEvents> {
     signer: PacketSigner;
 
     assetCache: Map<number, Buffer>;
-    playerHats: Map<number, PolusHat>;
+    playerHats: Map<number, PolusCosmetic>;
+    playerPets: Map<number, PolusCosmetic>;
+    playerSkin: Map<number, PolusCosmetic>;
 
     accountInfo?: AccountInfo;
 
@@ -81,6 +85,9 @@ export class PolusGGClient extends EventEmitter<PolusGGClientEvents> {
 
         this.assetCache = new Map;
         this.playerHats = new Map;
+        this.playerPets = new Map;
+        this.playerSkin = new Map;
+
         this.skeldjsClient.options.attemptAuth = false;
 
         const originalSend = skeldjs.SkeldjsClient.prototype["_send"].bind(this.skeldjsClient);
@@ -103,6 +110,8 @@ export class PolusGGClient extends EventEmitter<PolusGGClientEvents> {
             FetchResourceMessage,
             FetchResourceResponseMessage,
             LoadHatMessage,
+            LoadPetMessage,
+            LoadSkinMessage,
             PolusHostGameMessage,
             SetGameOptionMessage
         );
@@ -171,14 +180,38 @@ export class PolusGGClient extends EventEmitter<PolusGGClientEvents> {
         });
 
         this.skeldjsClient.decoder.on(LoadHatMessage, async message => {
-            const cachedHat = this.playerHats.get(message.hatId);
-            if (cachedHat) {
+            const cachedCosmetic = this.playerHats.get(message.amongUsId);
+            if (cachedCosmetic) {
                 if (message.isFree) {
-                    cachedHat.canBeUsed = true;
+                    cachedCosmetic.canBeUsed = true;
                 }
             } else {
-                const cosmeticInfo = await this.cosmeticsRestClient.getCosmeticItemByAuId(message.hatId);
-                this.registerHat(cosmeticInfo, false);
+                const cosmeticInfo = await this.cosmeticsRestClient.getCosmeticItemByAuId(message.amongUsId);
+                this.registerCosmetic(cosmeticInfo, false);
+            }
+        });
+
+        this.skeldjsClient.decoder.on(LoadPetMessage, async message => {
+            const cachedCosmetic = this.playerPets.get(message.amongUsId);
+            if (cachedCosmetic) {
+                if (message.isFree) {
+                    cachedCosmetic.canBeUsed = true;
+                }
+            } else {
+                const cosmeticInfo = await this.cosmeticsRestClient.getCosmeticItemByAuId(message.amongUsId);
+                this.registerCosmetic(cosmeticInfo, false);
+            }
+        });
+
+        this.skeldjsClient.decoder.on(LoadSkinMessage, async message => {
+            const cachedCosmetic = this.playerSkin.get(message.amongUsId);
+            if (cachedCosmetic) {
+                if (message.isFree) {
+                    cachedCosmetic.canBeUsed = true;
+                }
+            } else {
+                const cosmeticInfo = await this.cosmeticsRestClient.getCosmeticItemByAuId(message.amongUsId);
+                this.registerCosmetic(cosmeticInfo, false);
             }
         });
 
@@ -204,30 +237,43 @@ export class PolusGGClient extends EventEmitter<PolusGGClientEvents> {
         this.initializeBuiltins();
     }
 
-    registerHat(cosmetic: CosmeticModel, immediatelyUsable: boolean) {
-        if (cosmetic.type !== "HAT") {
-            throw new TypeError("Cosmetic was not of type 'HAT'");
-        }
-
-        this.playerHats.set(
+    registerCosmetic(cosmetic: CosmeticModel, immediatelyUsable: boolean) {
+        const polusCosmetic = new PolusCosmetic(
+            cosmetic.id,
+            cosmetic.name,
+            cosmetic.author,
             cosmetic.amongUsId,
-            new PolusHat(
-                cosmetic.id,
-                cosmetic.name,
-                cosmetic.author,
-                cosmetic.amongUsId,
-                cosmetic.resource,
-                cosmetic.thumbnail,
-                cosmetic.type,
-                cosmetic.color,
-                immediatelyUsable
-            )
+            cosmetic.resource,
+            cosmetic.thumbnail,
+            cosmetic.type,
+            cosmetic.color,
+            immediatelyUsable
         );
+
+        switch (cosmetic.type) {
+            case "HAT":
+                this.playerHats.set(cosmetic.amongUsId, polusCosmetic);
+                break;
+            case "PET":
+                this.playerPets.set(cosmetic.amongUsId, polusCosmetic);
+                break;
+            case "SKIN":
+                this.playerSkin.set(cosmetic.amongUsId, polusCosmetic);
+                break;
+        }
     }
 
     initializeBuiltins() {
         for (const builtInHat of BuiltInHats) {
-            this.registerHat(builtInHat, true);
+            this.registerCosmetic(builtInHat, true);
+        }
+
+        for (const builtInPet of BuiltInPets) {
+            this.registerCosmetic(builtInPet, true);
+        }
+
+        for (const builtInSkin of BuiltInSkins) {
+            this.registerCosmetic(builtInSkin, true);
         }
     }
 
@@ -239,9 +285,7 @@ export class PolusGGClient extends EventEmitter<PolusGGClientEvents> {
 
         const cosmeticItems = await this.cosmeticsRestClient.getCosmeticList();
         for (const cosmeticItem of cosmeticItems) {
-            if (cosmeticItem.type === "HAT") {
-                this.registerHat(cosmeticItem, false);
-            }
+            this.registerCosmetic(cosmeticItem, false);
         }
 
         return this.accountInfo;
@@ -316,45 +360,117 @@ export class PolusGGClient extends EventEmitter<PolusGGClientEvents> {
         }
     }
 
-    getHatByName(hatName: string) {
-        for (const [ hatId, hat ] of this.playerHats) {
-            if (hat.name === hatName)
-                return hat;
-        }
-
-        return undefined;
+    async joinGame(code: RoomID) {
+        return await this.skeldjsClient.joinGame(code);
     }
 
-    private _setHat(hat: PolusHat) {
-        if (!hat.canBeUsed)
-            throw new Error("Tried to set hat that you don't own.");
+    private _setCosmetic(cosmetic: PolusCosmetic) {
+        if (!cosmetic.canBeUsed)
+            throw new Error("Tried to set cosmetic that you don't own.");
 
         const myControl = this.skeldjsClient.me?.control;
 
         if (!myControl) {
-            throw new Error("Tried to set hat while not spawned in.");
+            throw new Error("Tried to set cosmetic while not spawned in.");
         }
 
-        myControl.setHat(hat.amongUsId);
+        switch (cosmetic.type) {
+            case "HAT":
+                myControl.setHat(cosmetic.amongUsId);
+                break;
+            case "PET":
+                myControl.setPet(cosmetic.amongUsId);
+                break;
+            case "SKIN":
+                myControl.setSkin(cosmetic.amongUsId);
+                break;
+        }
     }
 
-    setHat(hatId: string|number) {
-        if (typeof hatId === "string") {
-            const hat = this.getHatByName(hatId);
+    getHatByName(hatName: string) {
+        for (const [ , cosmetic ] of this.playerHats) {
+            if (cosmetic.name.toLowerCase() === hatName.toLowerCase()) {
+                return cosmetic;
+            }
+        }
+        return undefined;
+    }
+
+    setHat(nameOrId: string|number) {
+        if (typeof nameOrId === "string") {
+            const hat = this.getHatByName(nameOrId);
 
             if (!hat) {
-                throw new TypeError("Couldn't find hat with name: " + hatId);
+                throw new TypeError("Couldn't get cosmetic with name: " + nameOrId);
             }
 
-            return this._setHat(hat);
+            return this._setCosmetic(hat);
         }
 
-        const hat = this.playerHats.get(hatId);
+        const hat = this.playerHats.get(nameOrId);
 
         if (!hat) {
-            throw new TypeError("Couldn't get hat with id: " + hatId);
+            throw new TypeError("Couldn't get cosmetic with id: " + nameOrId);
         }
 
-        return this._setHat(hat);
+        return this._setCosmetic(hat);
+    }
+
+    getPetByName(petName: string) {
+        for (const [ , cosmetic ] of this.playerPets) {
+            if (cosmetic.name.toLowerCase() === petName.toLowerCase()) {
+                return cosmetic;
+            }
+        }
+        return undefined;
+    }
+
+    setPet(nameOrId: string|number) {
+        if (typeof nameOrId === "string") {
+            const pet = this.getPetByName(nameOrId);
+
+            if (!pet) {
+                throw new TypeError("Couldn't get cosmetic with name: " + nameOrId);
+            }
+
+            return this._setCosmetic(pet);
+        }
+
+        const pet = this.playerPets.get(nameOrId);
+
+        if (!pet) {
+            throw new TypeError("Couldn't get cosmetic with id: " + nameOrId);
+        }
+
+        return this._setCosmetic(pet);
+    }
+
+    getSkinByName(skinName: string) {
+        for (const [ , cosmetic ] of this.playerSkin) {
+            if (cosmetic.name.toLowerCase() === skinName.toLowerCase()) {
+                return cosmetic;
+            }
+        }
+        return undefined;
+    }
+
+    setSkin(nameOrId: string|number) {
+        if (typeof nameOrId === "string") {
+            const skin = this.getSkinByName(nameOrId);
+
+            if (!skin) {
+                throw new TypeError("Couldn't get cosmetic with name: " + nameOrId);
+            }
+
+            return this._setCosmetic(skin);
+        }
+
+        const skin = this.playerSkin.get(nameOrId);
+
+        if (!skin) {
+            throw new TypeError("Couldn't get cosmetic with id: " + nameOrId);
+        }
+
+        return this._setCosmetic(skin);
     }
 }
