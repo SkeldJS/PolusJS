@@ -22,8 +22,7 @@ const polusGGClient = new PolusGGClient("2021.6.30s");
     polusGGClient.skeldjsClient.me.control.checkName("hello");
     polusGGClient.skeldjsClient.me.control.checkColor(Color.Blue);
 
-    await polusGGClient.skeldjsClient.wait("player.join");
-    await sleep(4000);
-
-    polusGGClient.setHat(10000000);
+    polusGGClient.setPet("glitch pet");
+    polusGGClient.setSkin("prisoner skin");
+    polusGGClient.setHat("Angry eyebrows");
 })();
