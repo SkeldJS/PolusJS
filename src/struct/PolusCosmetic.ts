@@ -1,6 +1,6 @@
 import { CosmeticResourceIdentifierModel, CosmeticType } from "../rest";
 
-export class PolusHat {
+export class PolusCosmetic {
     constructor(
         public readonly id: string,
         public readonly name: string,
