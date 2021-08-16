@@ -13,16 +13,20 @@ const polusGGClient = new PolusGGClient("2021.6.30s");
     console.log("creating game..");
     await polusGGClient.hostGame(true);
 
-    console.log(await polusGGClient.cosmeticsRestClient.getCosmeticList());
-
     console.log("code: " + Int2Code(polusGGClient.skeldjsClient.code));
 
-    await sleep(2000);
+    await sleep(1000);
     
-    polusGGClient.skeldjsClient.me.control.checkName("hello");
     polusGGClient.skeldjsClient.me.control.checkColor(Color.Blue);
+    polusGGClient.skeldjsClient.me.control.checkName("hello");
+
+    await sleep(2000);
 
     polusGGClient.setPet("glitch pet");
     polusGGClient.setSkin("prisoner skin");
-    polusGGClient.setHat("Angry eyebrows");
+    try {
+        polusGGClient.setHat("tennis");
+    } catch (e) {
+
+    }
 })();
