@@ -8,10 +8,10 @@ import { PacketSigner } from "./PacketSigner";
 import { AccountInfo } from "./struct/AccountInfo";
 import { ClientConfig } from "@skeldjs/client/dist/lib/interface/ClientConfig";
 import { PolusGameOptions, PolusCosmetic } from "./struct";
-import { RoomID } from "@skeldjs/client";
+import { CustomNetworkTransform, PlayerPhysics, RoomID, SkeldjsClientEvents, SpawnType } from "@skeldjs/client";
 
 import { EventEmitter, ExtractEventTypes } from "@skeldjs/events";
-import { FetchResourceEvent } from "./events";
+import { FetchResourceEvent, PlayerReviveEvent } from "./events";
 
 import {
     AccountInfoModel,
@@ -40,28 +40,32 @@ import {
     PolusDeadBody,
     PolusGraphic,
     PolusNetworkTransform,
+    PolusPlayerControl,
     PolusPoi,
     PolusPrefabHandle,
     PolusSoundSource
 } from "./innernet";
 import { BuiltInHats, BuiltInPets, BuiltInSkins } from "./data";
+import { PolusSpawnType } from "./enums";
+import { PolusSkeldjsClient } from "./PolusSkeldjsClient";
 
 export interface PolusGGCredentials {
     email: string;
     password: string;
 }
 
-export type PolusGGClientEvents = ExtractEventTypes<[
-    FetchResourceEvent
+export type PolusGGClientEvents<RoomType extends skeldjs.Hostable> = SkeldjsClientEvents & ExtractEventTypes<[
+    FetchResourceEvent,
+    PlayerReviveEvent<RoomType>
 ]>;
 
-export class PolusGGClient extends EventEmitter<PolusGGClientEvents> {
-    skeldjsClient: skeldjs.SkeldjsClient;
+export class PolusGGClient extends EventEmitter<PolusGGClientEvents<PolusSkeldjsClient>> {
+    skeldjsClient: PolusSkeldjsClient;
     gameOptions: PolusGameOptions;
 
     accountRestClient: PolusAccountRestClient;
     cosmeticsRestClient: PolusCosmeticsRestClient;
-    signer: PacketSigner;
+    signingHelper: PacketSigner;
 
     assetCache: Map<number, Buffer>;
     playerHats: Map<number, PolusCosmetic>;
@@ -76,12 +80,12 @@ export class PolusGGClient extends EventEmitter<PolusGGClientEvents> {
     constructor(clientVersion: string|number|VersionInfo, options: Partial<ClientConfig> = {}) {
         super();
 
-        this.skeldjsClient = new skeldjs.SkeldjsClient(clientVersion, { ...options, attemptAuth: false });
+        this.skeldjsClient = new PolusSkeldjsClient(this, clientVersion, { ...options, attemptAuth: false });
         this.gameOptions = new PolusGameOptions(this);
 
         this.accountRestClient = new PolusAccountRestClient(this);
         this.cosmeticsRestClient = new PolusCosmeticsRestClient(this);
-        this.signer = new PacketSigner(this);
+        this.signingHelper = new PacketSigner(this);
 
         this.assetCache = new Map;
         this.playerHats = new Map;
@@ -90,20 +94,44 @@ export class PolusGGClient extends EventEmitter<PolusGGClientEvents> {
 
         this.skeldjsClient.options.attemptAuth = false;
 
-        const originalSend = skeldjs.SkeldjsClient.prototype["_send"].bind(this.skeldjsClient);
-        this.skeldjsClient["_send"] = (buffer: Buffer) => {
-            const signed = this.signer.signBytes(buffer);
-            originalSend(signed);
+        let _secureToken = "";
+        this.getAccessToken = function () {
+            return _secureToken;
+        }
+        this.setAccessToken = function (token: string) {
+            _secureToken = token;
         }
 
-        this.skeldjsClient.registerPrefab(128, [ PolusGraphic, PolusNetworkTransform ]);
-        this.skeldjsClient.registerPrefab(129, [ PolusCameraController, PolusGraphic, PolusClickBehaviour ]);
-        this.skeldjsClient.registerPrefab(131, [ PolusDeadBody, PolusNetworkTransform ]);
-        this.skeldjsClient.registerPrefab(133, [ PolusSoundSource, PolusNetworkTransform ]);
-        this.skeldjsClient.registerPrefab(135, [ PolusPoi, PolusGraphic, PolusNetworkTransform ]);
-        this.skeldjsClient.registerPrefab(136, [ PolusCameraController ]);
-        this.skeldjsClient.registerPrefab(137, [ PolusPrefabHandle, PolusNetworkTransform ]);
+        setInterval(() => {
+            // fix: client sends pings after server disconnects me
+            if (this.skeldjsClient.connected) {
+                this.skeldjsClient.send(
+                    new protocol.PingPacket(
+                        this.skeldjsClient.getNextNonce()
+                    )
+                );
+            }
+        }, 5000);
 
+        this.registerPrefabs();
+        this.registerMessages();
+        this.registerHandlers();
+        this.initializeBuiltins();
+    }
+
+    registerPrefabs() {
+        this.skeldjsClient.registerPrefab(SpawnType.Player, [ PolusPlayerControl, PlayerPhysics, CustomNetworkTransform ]);
+
+        this.skeldjsClient.registerPrefab(PolusSpawnType.Image, [ PolusGraphic, PolusNetworkTransform ]);
+        this.skeldjsClient.registerPrefab(PolusSpawnType.Button, [ PolusCameraController, PolusGraphic, PolusClickBehaviour ]);
+        this.skeldjsClient.registerPrefab(PolusSpawnType.DeadBody, [ PolusDeadBody, PolusNetworkTransform ]);
+        this.skeldjsClient.registerPrefab(PolusSpawnType.SoundSource, [ PolusSoundSource, PolusNetworkTransform ]);
+        this.skeldjsClient.registerPrefab(PolusSpawnType.Poi, [ PolusPoi, PolusGraphic, PolusNetworkTransform ]);
+        this.skeldjsClient.registerPrefab(PolusSpawnType.CameraController, [ PolusCameraController ]);
+        this.skeldjsClient.registerPrefab(PolusSpawnType.PrefabHandler, [ PolusPrefabHandle, PolusNetworkTransform ]);
+    }
+
+    registerMessages() {
         this.skeldjsClient.decoder.register(
             ClickMessage,
             DeleteGameOptionMessage,
@@ -115,7 +143,9 @@ export class PolusGGClient extends EventEmitter<PolusGGClientEvents> {
             PolusHostGameMessage,
             SetGameOptionMessage
         );
+    }
 
+    registerHandlers() {
         this.skeldjsClient.decoder.on(FetchResourceMessage, async message => {
             const ev = await this.emit(
                 new FetchResourceEvent(
@@ -151,7 +181,7 @@ export class PolusGGClient extends EventEmitter<PolusGGClientEvents> {
                             new FetchResourceResponseMessage(
                                 message.resourceId,
                                 FetchResourceResponseType.DownloadEnded,
-                                ev.downloadCached
+                                true
                             )
                         ]
                     )
@@ -181,10 +211,9 @@ export class PolusGGClient extends EventEmitter<PolusGGClientEvents> {
 
         this.skeldjsClient.decoder.on(LoadHatMessage, async message => {
             const cachedCosmetic = this.playerHats.get(message.amongUsId);
+            console.log("got laod hat like a boss", message);
             if (cachedCosmetic) {
-                if (message.isFree) {
-                    cachedCosmetic.canBeUsed = true;
-                }
+                cachedCosmetic.canBeUsed = message.isFree;
             } else {
                 const cosmeticInfo = await this.cosmeticsRestClient.getCosmeticItemByAuId(message.amongUsId);
                 this.registerCosmetic(cosmeticInfo, false);
@@ -194,9 +223,7 @@ export class PolusGGClient extends EventEmitter<PolusGGClientEvents> {
         this.skeldjsClient.decoder.on(LoadPetMessage, async message => {
             const cachedCosmetic = this.playerPets.get(message.amongUsId);
             if (cachedCosmetic) {
-                if (message.isFree) {
-                    cachedCosmetic.canBeUsed = true;
-                }
+                cachedCosmetic.canBeUsed = message.isFree;
             } else {
                 const cosmeticInfo = await this.cosmeticsRestClient.getCosmeticItemByAuId(message.amongUsId);
                 this.registerCosmetic(cosmeticInfo, false);
@@ -206,35 +233,12 @@ export class PolusGGClient extends EventEmitter<PolusGGClientEvents> {
         this.skeldjsClient.decoder.on(LoadSkinMessage, async message => {
             const cachedCosmetic = this.playerSkin.get(message.amongUsId);
             if (cachedCosmetic) {
-                if (message.isFree) {
-                    cachedCosmetic.canBeUsed = true;
-                }
+                cachedCosmetic.canBeUsed = message.isFree;
             } else {
                 const cosmeticInfo = await this.cosmeticsRestClient.getCosmeticItemByAuId(message.amongUsId);
                 this.registerCosmetic(cosmeticInfo, false);
             }
         });
-
-        let _secureToken = "";
-        this.getAccessToken = function () {
-            return _secureToken;
-        }
-        this.setAccessToken = function (token: string) {
-            _secureToken = token;
-        }
-
-        setInterval(() => {
-            // fix: client sends pings after server disconnects me
-            if (this.skeldjsClient.connected) {
-                this.skeldjsClient.send(
-                    new protocol.PingPacket(
-                        this.skeldjsClient.getNextNonce()
-                    )
-                );
-            }
-        }, 5000);
-
-        this.initializeBuiltins();
     }
 
     registerCosmetic(cosmetic: CosmeticModel, immediatelyUsable: boolean) {
